@@ -1,4 +1,5 @@
 import sys
+from base import Expression, Normal, Unit, Variable, Abstraction, Application
 
 """
 This is an implementation of linear lambda calculus.
@@ -10,7 +11,8 @@ Roadmap:
 4) Extend to linear (typed) lambda calculus.
 
 
-First we do basic untyped lambda calculus.
+First we do basic untyped lambda calculus. This file will handle the steps-to semantics assuming the linear type checker has already passed.
+Enforcement of linear typing is handled in type_check.py
 
 Lambda calculus:
 1) Variable
@@ -24,37 +26,11 @@ Normal - Expression is in normal form if it can no longer be reduced by beta or 
 
 Beta(β) reduction - Replacing bound variables in function body with arguments
 Eta(η) reduction - Get rid of dummy function
-Alpha(α) substitution - variable renaming
+Alpha(o) substitution - variable renaming
 
 Starting out with implementing applicative order reduction.
 
 """
-
-class Expression:
-    pass
-
-class Normal:
-    pass
-
-class Variable(Expression):
-    def __init__(self, name: str) -> None:
-        self.name = name
-    def __str__(self) -> str:
-        return self.name
-
-class Abstraction(Expression, Normal):
-    def __init__(self, param: Expression, body: Expression) -> None:
-        self.param = param
-        self.body = body
-    def __str__(self) -> str:
-        return f"(λ({self.param}). ({self.body}))"
-
-class Application(Expression):
-    def __init__(self, function: Expression, argument: Expression) -> None:
-        self.function = function
-        self.argument = argument   
-    def __str__(self) -> str:
-        return f"(({self.function}) ({self.argument}))"
     
 class Interpreter:
     """Applicative order"""
@@ -90,6 +66,7 @@ class Interpreter:
 
 
 def main() -> int:
+    # Testing
     test_expression = Application(Abstraction(Variable("x"), Abstraction(Variable("y"), Variable("x"))), (Abstraction(Variable("z"), Variable("z"))))
     name_collision_expression = Application(Abstraction(Variable("x"), Abstraction(Variable("x"), Variable("x"))), Abstraction(Variable("z"), Variable("z")))
     interpreter = Interpreter()
