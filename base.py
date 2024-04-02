@@ -1,3 +1,4 @@
+from enum import Enum
 class Expression:
     pass
 
@@ -32,6 +33,11 @@ class Application(Expression):
     def __str__(self) -> str:
         return f"(({self.function}) ({self.argument}))"
 
+#Additive - same context, multiplicative - different contexts.
+#Todo: There's two types of products to implement.  Multiplicative conjunction(A ⊗ B, both parts of the product must be used, deconstruct by adding both to product), additive conjunction(only one of the product's things must be used(corresponding to elimination with fst and snd)). 
+#Additive basically means your context supports both possibilities, but only one at a time, meaning you can't have both parts of the product.  (note: to implement this we may need multiple instances of the same mapping in context.  how to handle?).  Let's us introduce a pair of possibilities and pick one of them later on.
+
+#Note: disjunction aka + operator from class only requires one or the other to be supported by the context - ie. it doesn't have to support both possibilities.
 class Product(Expression):
     # Product type is not part of default STLC, it is something we need to add in
     def __init__(self, e1 : Expression, e2: Expression) -> None:
@@ -39,6 +45,16 @@ class Product(Expression):
         self.e2 = e2
     def __str__(self) -> str:
         return f"<{self.e1}, {self.e2}>"
+    
+class SumChoice(Enum):
+    INL = "inl"
+    INR = "inr"
+class Sum(Expression):
+    def __init__(self, expr: Expression, choice: SumChoice):
+        self.expr = expr
+        self.choice = choice
+    def __str__(self):
+        return f"{self.choice} {self.expr}"
     
 class Type:
     def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
@@ -48,3 +64,8 @@ class Type:
         self.t2 = t2
     def __eq__(self, other):
         return self.is_unit == other.is_unit and self.is_product == other.is_product and self.t1 == other.t1 and self.t2 == other.t2
+    
+class SumType(Type):
+    def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
+        Type.__init__(self, is_unit, is_product, t1, t2)
+    
