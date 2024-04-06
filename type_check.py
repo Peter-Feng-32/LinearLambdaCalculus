@@ -1,5 +1,10 @@
-from base import Type, Expression, Product, Unit, Variable, Abstraction, Application
+from base import Type, Expression, Product, Unit, Variable, Abstraction, Application, Sum, SumChoice, SumType
 
+"""
+Todo: eventually change from partitioning contexts in brute force????
+Can provide full contexts to both expressions, and get back their context on return to have what was unused, and check for matches there?
+Is this possible/in line with linear logic?
+"""
 def partition_context(context):
     lst = [(k, v) for k, v in context.items()]
     n = len(lst)
@@ -27,7 +32,7 @@ def check_with_context(expression, type, context={}):
         return check_with_context(expression.body, type.t2, context)
     elif isinstance(expression, Application):
         if not context:
-            return check_with_context(expression.function, type.t1, context1) and check_with_context(expression.argument, type.t2, context2)
+            return check_with_context(expression.function, type.t1, context) and check_with_context(expression.argument, type.t2, context)
         partitions = partition_context(context)
         for context1, context2 in partitions:
             if check_with_context(expression.function, type.t1, context1) and check_with_context(expression.argument, type.t2, context2):
@@ -37,12 +42,20 @@ def check_with_context(expression, type, context={}):
         if not type.is_product:
             return False
         elif not context:
-            return check_with_context(expression.e1, type.t1, context1) and check_with_context(expression.e2, type.t2, context2)
+            return check_with_context(expression.e1, type.t1, context) and check_with_context(expression.e2, type.t2, context)
         partitions = partition_context(context)
         for context1, context2 in partitions:
             if check_with_context(expression.e1, type.t1, context1) and check_with_context(expression.e2, type.t2, context2):
                 return True
         return False
+    elif isinstance(expression, Sum):
+        if not isinstance(type, SumType):
+            return False
+        if(expression.choice == SumChoice.INL):
+            return check_with_context(expression.expr, type.t1, context)
+        else:
+            return check_with_context(expression.expr, type.t2, context)
+
 
 # Testing
 e1, t1 = Unit(), Type(True) # passes
