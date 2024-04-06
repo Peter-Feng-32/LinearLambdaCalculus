@@ -55,17 +55,44 @@ class Sum(Expression):
         self.choice = choice
     def __str__(self):
         return f"{self.choice} {self.expr}"
+
+class And(Expression):
+    def __init__(self, e1 : Expression, e2: Expression) -> None:
+        self.e1 = e1
+        self.e2 = e2
+    def __str__(self) -> str:
+        return f"<<{self.e1}, {self.e2}>>"
     
 class Type:
-    def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
-        self.is_unit = is_unit
-        self.is_product = is_product
+    def __init__(self, t1=None, t2=None):
         self.t1 = t1
-        self.t2 = t2
-    def __eq__(self, other):
-        return self.is_unit == other.is_unit and self.is_product == other.is_product and self.t1 == other.t1 and self.t2 == other.t2
+        self.t2 =t2
+
+class UnitType(Type):
+    def __init__(self):
+        Type.__init__(self)
     
+    def __eq__(self, other):
+        return True
+
+class ConjunctiveProduct(Type):
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+    
+    def __eq__(self, other):
+        return self.t1 == other.t1
+
 class SumType(Type):
-    def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
-        Type.__init__(self, is_unit, is_product, t1, t2)
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1
+
+class ConjunctiveSum(Type):
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1
     

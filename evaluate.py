@@ -9,3 +9,6 @@ def evaluate(expression, type):
         return reduced
     else:
         raise Exception("Expression is not well-typed")
+    
+
+    
