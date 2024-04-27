@@ -33,11 +33,6 @@ class Application(Expression):
     def __str__(self) -> str:
         return f"(({self.function}) ({self.argument}))"
 
-#Additive - same context, multiplicative - different contexts.
-#Todo: There's two types of products to implement.  Multiplicative conjunction(A ⊗ B, both parts of the product must be used, deconstruct by adding both to product), additive conjunction(only one of the product's things must be used(corresponding to elimination with fst and snd)). 
-#Additive basically means your context supports both possibilities, but only one at a time, meaning you can't have both parts of the product.  (note: to implement this we may need multiple instances of the same mapping in context.  how to handle?).  Let's us introduce a pair of possibilities and pick one of them later on.
-
-#Note: disjunction aka + operator from class only requires one or the other to be supported by the context - ie. it doesn't have to support both possibilities.
 class Product(Expression):
     # Product type is not part of default STLC, it is something we need to add in
     def __init__(self, e1 : Expression, e2: Expression) -> None:
@@ -45,6 +40,12 @@ class Product(Expression):
         self.e2 = e2
     def __str__(self) -> str:
         return f"<{self.e1}, {self.e2}>"
+class ConsumeBoth(Expression):
+    def __init__(self, e1: Product, e2: Application) -> None:
+        self.e1 = e1
+        self.e2 = e2
+    def __str__(self) -> str:
+        return f"destruct {self.e1} as {self.e2}"
     
 class SumChoice(Enum):
     INL = "inl"
@@ -55,17 +56,82 @@ class Sum(Expression):
         self.choice = choice
     def __str__(self):
         return f"{self.choice} {self.expr}"
+class Case(Expression):
+    def __init__(self, sum : Sum, f1 : Abstraction, f2 : Abstraction):
+        self.sum = sum
+        self.f1 = f1
+        self.f2 = f2
+    def __str__(self):
+        return f"case {self.sum} {self.f1} {self.f2}"
+
+class And(Expression):
+    def __init__(self, e1 : Expression, e2: Expression) -> None:
+        self.e1 = e1
+        self.e2 = e2
+    def __str__(self) -> str:
+        return f"<<{self.e1}, {self.e2}>>"
+class ConsumeOne(Expression):
+    def __init__(self, use_first : bool, e: And) -> None:
+        self.use_first = use_first
+        self.e = e
+    def __str__(self) -> str:
+        if self.use_first:
+            return f"fst {self.e}"
+        return f"snd {self.e}"
     
+
 class Type:
-    def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
-        self.is_unit = is_unit
-        self.is_product = is_product
+    def __init__(self, t1=None, t2=None):
         self.t1 = t1
-        self.t2 = t2
-    def __eq__(self, other):
-        return self.is_unit == other.is_unit and self.is_product == other.is_product and self.t1 == other.t1 and self.t2 == other.t2
+        self.t2 =t2
+
+class UnitType(Type):
+    def __init__(self):
+        Type.__init__(self)
     
+    def __eq__(self, other):
+        return True
+
+class ConjunctiveProduct(Type):
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+    
+    def __eq__(self, other):
+        return self.t1 == other.t1 and self.t2 == other.t2
+
+class DestructConjunctiveProduct(Type):
+    # t1 is the type of the product, t2 is the type of destroying function
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1 and self.t2 == other.t2
+
 class SumType(Type):
-    def __init__(self, is_unit=False, is_product=False, t1=None, t2=None):
-        Type.__init__(self, is_unit, is_product, t1, t2)
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1 and self.t2 == other.t2
+class CaseType(Type):
+    # t1 is the sum type, t2 is the output type of both case functions
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1 and self.t2 == other.t2
+
+class ConjunctiveSum(Type):
+    def __init__(self, t1, t2):
+        super().__init__(t1, t2)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1 and self.t2 == other.t2
+class DestructConjunctiveSum(Type):
+    # t1 is the type of the conjunctive sum
+    def __init__(self, t1):
+        super().__init__(t1)
+
+    def __eq__(self, other):
+        return self.t1 == other.t1
     
